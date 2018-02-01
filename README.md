@@ -1,2 +1,2 @@
-# teaching_garbage
-all my shit for teaching
+# teaching_garbo
+my garbo for managing teaching
