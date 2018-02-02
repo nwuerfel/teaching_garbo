@@ -1,3 +1,7 @@
 # dont put fucking student grades online you douche
 *.std
+*.grd
+
+
 *.pyc
+
