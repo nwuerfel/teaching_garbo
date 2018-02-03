@@ -1,7 +1,7 @@
 ## Plot it ##
-##A stupid program to display grades
-##and take averages so I dont fuck my
-##kids over too bad when I grade too harshly
+# A stupid program to display grades
+# and take averages so I dont fuck my
+# kids over too bad when I grade too harshly
 #
 #
 # N. Wuerfel 2017 Umich goblu
@@ -22,17 +22,42 @@ import sys
 
 
 # displayHub is the main gui for interaction with data and lists and shit
-def displayHub(data):
-    print('underconstruction')
+def displayHub(studentData,gradeData):
+    unused = sp.call('clear')
+    print 'Launching display utility...'
+    print 'Calling kingOfCosmos...'
+    print 'Ordering classes'
+    
+
+    while True:
+        print 'Student lists available for following courses:\n'
+        for classRoom in studentData:
+            print classRoom[0]
+
+        # get user input, must be a safer/better way for later
+        userInput = raw_input()
+        try:
+            unused=sp.call('clear')
+            if userInput == 'quit' or userInput == 'q':
+                print 'Heading home, maybe you should do the same...'
+                quit()
+
+            elif userInput == 'help' or 'h':
+                print 'Commands:'
+                print "'quit', 'q' - exits the program"
+                print "'Help', 'h' - exits the program"
+                print "'clear' - clears terminal"
+
+        except ValueError:
+            print "Please supply something valid, dickhead"
 
 
 
 # gets lists of students from all courses in given homedir
 # returns as list lists of following format:
-##
-## [[Last','First','LastinitialFirstinital']...]
+#
+# [[classNum,[Last','First','LastinitialFirstinital']]...]
 def getStudents(homedir):
-
     # change with file spec
     numStudentField = 3
 
@@ -58,6 +83,7 @@ def getStudents(homedir):
         try: 
             # clean up file
             with open(homedir+fileName,'r+') as fp:
+                classNum = fileName[:-len(studentFileMark)]
                 studentList = fp.readlines()
                 for idx in range(len(studentList)):
                     if studentList[idx].endswith('\n'):
@@ -71,7 +97,7 @@ def getStudents(homedir):
                         #TODO
                     # for now i guess ill just die
                         quit('bleh')
-                allStudents.append(studentList)
+                allStudents.append([classNum,studentList])
                     
                 # check for and resolve redundancies
                 # clunky to double iterate but idk how to better in this fucking
@@ -98,17 +124,23 @@ def getStudents(homedir):
 
                 # double check user's dumb ass 
                 # currently just prevents reusing initials
+                    #JK CURRENTLY DOES NOTHING
         except IOError:
             print('what did u do to the files, stupid')
             print(fp)
             
             #a = sp.call('clear')
             #quit('BAD JOB, are you happy?')
+
+    # QUALITY CHECKS:
+    for classRoom in allStudents:
+        if not classRoom[0]:
+            print 'NO CLASS NUMBER'
+        if not classRoom[1]:
+            print 'NO STUDENTS'
     return(allStudents)
 
-def plotIt(A,totalPossible): 
-
-    
+def plotIt(A,totalPossible,showGaussian): 
     # A is a vector of scores 
 
     #convert to percents
@@ -117,10 +149,11 @@ def plotIt(A,totalPossible):
     plt.hist(B,8,normed=1) 
 
     # draw gaussian along with it
-    mean = sum(B)/float(len(B))
-    std = np.std(B)
-    x = np.linspace(mean-3*std, mean+3*std, 100)
-    plt.plot(x,mlab.normpdf(x,mean,std))
+    if(showGaussian):
+        mean = sum(B)/float(len(B))
+        std = np.std(B)
+        x = np.linspace(mean-3*std, mean+3*std, 100)
+        plt.plot(x,mlab.normpdf(x,mean,std))
     plt.show()
     
 
@@ -128,9 +161,10 @@ def main(argv):
 
     # UI bullshit
     defaultDir = '.'
-
+    gaussArg = False
+    inFileName = False
     try:
-        opts, args = getopt.getopt(argv, "hi:o:")    
+        opts, args = getopt.getopt(argv, "hgi:o:")    
     except getopt.GetoptError:
         print helpMessage
         sys.exit(2)
@@ -138,37 +172,44 @@ def main(argv):
         if opt == '-h':
             print helpMessage
             sys.exit()
+        if opt == '-g':
+            gaussArg = True
         elif opt == '-i':
             inFileName =str(arg)
         elif opt == '-o':
             arg = input('lab number: ')
             outFileName = '../grades/lab' + str(arg) + '.grd'
 
+    # error checking userinput
+        if not inFileName:
+            print 'please supply an infile using -i \'MYFILENAME\''
+
     # sanitization done in function
     myStudents = getStudents(inFileName)
-    
     numClasses = len(myStudents)
 
+    allGrades = []
+
+    # FIX LATER PROBABLY NOT GOOD INPUT FORMAT
     totalPossible = float(raw_input("total points possible? "))
 
     for classRoom in myStudents:
-
-        # will be depricated but its late 
-        # horribly assumes num-alphabetic ordering
-        className = '15'+str(myStudents.index(classRoom)+1)
+        className = classRoom[0]
 
         # NOT SAFE(?) FIX PLS 
-        grades = input('grades for' + className + '? ')
+        grades = input('grades for ' + className + '? ')
+
+        # catch corner case in a suitably bad way 
         if type(grades) is int:
             grades = [grades]
- 
-        #grades = [float(a) for a in raw_input('grades for' + className + '? ')]
-       
-    plotIt(grades,totalPossible)
-        
+
+        allGrades.append(grades)
+
+        #plotIt(grades,totalPossible,gaussArg)
+
+    displayHub(myStudents,allGrades)
 
 
-
-
+# python is so stupid
 if __name__ =="__main__":
     main(sys.argv[1:])
